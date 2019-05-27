@@ -1,0 +1,25 @@
+(defn operation [func] (fn [& args] (fn [values] (apply func (mapv (fn [element] (element values)) args)))))
+(def constant constantly)
+(defn variable [var] (fn [values] (values (str var))))
+
+(def add (operation +))
+(def subtract (operation -))
+(def negate (operation -))
+(def multiply (operation *))
+(defn div [arg & args] (/ arg (double (apply * args))))
+(def divide (operation div))
+(defn average [& args] (/ (apply + args) (count args)))
+(def avg (operation average))
+(defn median [& args] (nth (sort args) (unchecked-divide-int (count args) 2)))
+(def med (operation median))
+
+(def getOperation {'+ add, '- subtract, 'negate subtract, '* multiply, '/ divide, 'med med, 'avg avg})
+
+(defn parseFunction [expression]
+  (if (string? expression)
+    (parseFunction (read-string expression))
+    (if (number? expression)
+      (constant expression)
+      (if (symbol? expression)
+        (variable expression)
+        (apply (getOperation (first expression)) (mapv parseFunction (rest expression)))))))
